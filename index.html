@@ -1,15 +1,2043 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Прототип сравнения фондов</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f7; }
-        h1 { color: #1c1c1e; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Сравнение фондов - прототип</title>
+  <style>
+    :root {
+      --bg-app: #f1f1f2;
+      --bg-surface: #ffffff;
+      --bg-muted: #f1f1f2;
+      --text-main: #1f242e;
+      --text-secondary: #71747a;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --success: #00b259;
+      --danger: #ef4444;
+      --border: #dbdbe2;
+      --shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
+      --radius-xl: 20px;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      background: #f1f1f2;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      color: var(--text-main);
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 390px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: #f1f1f2;
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(31, 36, 46, 0.03), 0 20px 40px rgba(31, 36, 46, 0.08);
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      background: #f1f1f2;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(241, 241, 242, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 0;
+      padding: 16px 16px 8px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.2;
+      font-weight: 500;
+      letter-spacing: -0.025em;
+    }
+
+    .icon-btn {
+      border: 0;
+      background: transparent;
+      border-radius: 999px;
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.97);
+    }
+
+    .icon-btn.active {
+      border-color: transparent;
+      background: #dceafe;
+      color: var(--accent);
+    }
+
+    .icon-btn.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .products-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .home-screen {
+      background: #f1f1f2;
+      min-height: 0;
+    }
+
+    .home-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+    }
+
+    .home-user {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 31px;
+      line-height: 1;
+      font-weight: 600;
+      color: #1f242e;
+    }
+
+    .home-user small {
+      font-size: 16px;
+      margin-left: 2px;
+      margin-right: 1px;
+      color: #fd9d0f;
+      line-height: 1;
+    }
+
+    .home-user .go {
+      font-size: 24px;
+      margin-left: 2px;
+      color: #1f242e;
+      opacity: 0.9;
+    }
+
+    .home-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .coins {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      padding: 2px 6px 2px 10px;
+      background: linear-gradient(128deg, #ff8f19 18%, #f8d40c 91%);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .coins i {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-style: normal;
+      font-size: 16px;
+    }
+
+    .home-bell {
+      font-size: 20px;
+      color: #1f242e;
+    }
+
+    .stories {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 8px 16px 0;
+      scrollbar-width: none;
+    }
+
+    .stories::-webkit-scrollbar {
+      display: none;
+    }
+
+    .story {
+      flex: 0 0 92px;
+      text-align: center;
+    }
+
+    .story-ring {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      border: 2px solid #1e85ff;
+      padding: 4px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .story-ring img {
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .story p {
+      margin: 8px 0 0;
+      font-size: 10px;
+      line-height: 12px;
+      letter-spacing: 0.015em;
+      color: #1f242e;
+      font-weight: 500;
+    }
+
+    .home-content {
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .assets-card {
+      border-radius: 16px;
+      background: #fff;
+      padding: 16px;
+    }
+
+    .assets-title {
+      color: #71747a;
+      font-size: 14px;
+      line-height: 16px;
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .assets-row {
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .assets-balance {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 37px;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: #1f242e;
+    }
+
+    .assets-hide {
+      color: #9da2ad;
+      font-size: 20px;
+    }
+
+    .assets-hint {
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 14px;
+      line-height: 16px;
+      letter-spacing: -0.03em;
+      color: #1f242e;
+      font-weight: 500;
+    }
+
+    .segment {
+      border-radius: 13px;
+      background: #fff;
+      padding: 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 2px;
+    }
+
+    .segment button {
+      border: 0;
+      border-radius: 10px;
+      height: 40px;
+      background: transparent;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1f242e;
+      letter-spacing: -0.03em;
+      cursor: pointer;
+    }
+
+    .segment button.active {
+      background: #1f242e;
+      color: #fff;
+    }
+
+    .main-title {
+      margin: 6px 0 0;
+      font-size: 21pt;
+      line-height: 24px;
+      font-weight: 600;
+      color: #1f242e;
+      letter-spacing: -0.02em;
+    }
+
+    .service-list {
+      border-radius: 16px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .service-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+    }
+
+    .service-row.clickable {
+      cursor: pointer;
+    }
+
+    .service-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f3f4f6;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #1f242e;
+      flex: 0 0 30px;
+    }
+
+    .service-name {
+      flex: 1;
+      min-width: 0;
+      font-family: "Onest", -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      font-size: 14pt;
+      line-height: 1.16;
+      letter-spacing: -0.01em;
+      color: #1f242e;
+      font-weight: 500;
+    }
+
+    .service-arrow {
+      color: #a0a5b1;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .product-item {
+      border: 0;
+      background: #fff;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    .product-item.clickable {
+      cursor: pointer;
+      border-color: transparent;
+      background: #f8faff;
+    }
+
+    .search {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-muted);
+      border: 0;
+      border-radius: 12px;
+      padding: 8px;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+
+    .scroller {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .scroller::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tile {
+      flex: 0 0 212px;
+      background: #fff;
+      border: 0;
+      border-radius: 20px;
+      padding: 12px;
+      min-height: 99px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .tile h4 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 16px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .tile p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.03em;
+      color: var(--text-secondary);
+    }
+
+    .section-title-row {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: -0.035em;
+    }
+
+    .sort-btn {
+      border: 0;
+      background: #fff;
+      border-radius: 999px;
+      height: 32px;
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .chips {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 0;
+      border-radius: 999px;
+      font-size: 13px;
+      padding: 8px 12px;
+      background: #fff;
+      color: var(--text-main);
+      cursor: pointer;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+    }
+
+    .chip.active {
+      background: #1f242e;
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .cards {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+      padding-bottom: 120px;
+    }
+
+    .fund-card {
+      background: #fff;
+      border: 0;
+      border-radius: var(--radius-lg);
+      padding: 12px;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .fund-card h4 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 16px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .fund-subtitle {
+      margin: 0 0 4px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+    }
+
+    .fund-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+
+    .fund-meta span {
+      display: block;
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+      margin-bottom: 4px;
+    }
+
+    .fund-meta strong {
+      color: var(--text-main);
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .yield {
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    .card-bottom {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .risk {
+      font-size: 13px;
+      line-height: 16px;
+      border-radius: 8px;
+      padding: 4px 10px;
+      background: var(--bg-muted);
+      border: 0;
+      color: var(--text-main);
+      letter-spacing: -0.04em;
+    }
+
+    .compare-btn {
+      border: 0;
+      background: transparent;
+      border-radius: 999px;
+      height: 40px;
+      min-width: 40px;
+      padding: 0 10px;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      letter-spacing: -0.03em;
+    }
+
+    .compare-btn.active {
+      border-color: transparent;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .compare-btn:disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .fund-detail-card {
+      margin-top: 12px;
+      border: 0;
+      border-radius: var(--radius-xl);
+      padding: 14px;
+      background: #fff;
+      box-shadow: none;
+    }
+
+    .detail-grid {
+      margin-top: 10px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .detail-row span:first-child {
+      color: var(--text-secondary);
+    }
+
+    .compare-top {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      padding: 12px 16px;
+      background: rgba(241, 241, 242, 0.96);
+      border-bottom: 0;
+    }
+
+    .selected-funds {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 3px;
+      scrollbar-width: none;
+    }
+
+    .selected-funds::-webkit-scrollbar {
+      display: none;
+    }
+
+    .selected-pill {
+      flex: 0 0 auto;
+      border: 0;
+      background: #f4f8ff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .selected-pill button {
+      border: none;
+      background: transparent;
+      color: #5d647d;
+      cursor: pointer;
+      padding: 0;
+      width: 18px;
+      height: 18px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .compare-content {
+      padding: 14px 16px 110px;
+    }
+
+    .chart-wrap {
+      border: 0;
+      border-radius: var(--radius-lg);
+      padding: 10px;
+      background: #fff;
+    }
+
+    canvas {
+      width: 100%;
+      height: 220px;
+      display: block;
+      background: #fff;
+      border-radius: 12px;
+    }
+
+    .legend {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .legend-btn {
+      border: 0;
+      border-radius: 999px;
+      background: #ffffff;
+      font-size: 11px;
+      padding: 5px 9px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .legend-btn.off {
+      opacity: 0.45;
+    }
+
+    .metrics-table {
+      margin-top: 12px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      table-layout: fixed;
+    }
+
+    .metrics-table th,
+    .metrics-table td {
+      border-bottom: 1px solid #ececf1;
+      padding: 8px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .metrics-table thead th {
+      position: sticky;
+      top: 58px;
+      z-index: 4;
+      background: #fff;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    .best {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .disclaimer {
+      margin-top: 10px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .snackbar {
+      position: fixed;
+      left: 50%;
+      bottom: 12px;
+      transform: translate(-50%, 120%);
+      width: min(358px, calc(100vw - 20px));
+      max-width: calc(390px - 20px);
+      border-radius: 16px;
+      background: #111827;
+      color: #fff;
+      padding: 10px 6px 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 10px 28px rgba(17, 24, 39, 0.35);
+      z-index: 80;
+      transition: transform 0.3s linear;
+    }
+
+    .snackbar.show {
+      transform: translate(-50%, 0);
+    }
+
+    .snackbar-text {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .snackbar-close {
+      width: 48px;
+      height: 48px;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .tooltip-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 18, 33, 0.35);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      z-index: 70;
+      padding-top: 76px;
+    }
+
+    .tooltip-overlay.show {
+      display: flex;
+    }
+
+    .tooltip {
+      width: calc(100% - 32px);
+      max-width: 358px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .tooltip h4 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .tooltip p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .tooltip-close {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      color: #51597a;
+      cursor: pointer;
+    }
+
+    .alert-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(14, 23, 40, 0.4);
+      z-index: 85;
+      padding: 20px;
+    }
+
+    .alert-overlay.show {
+      display: flex;
+    }
+
+    .alert-box {
+      width: min(340px, 100%);
+      border-radius: 20px;
+      background: #fff;
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+
+    .alert-box h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .alert-box p {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .subtle {
+      color: var(--text-secondary);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .funds-screen-header {
+      position: sticky;
+      top: 0;
+      z-index: 28;
+      background: #f1f1f2;
+      padding: 6px 12px 10px;
+    }
+
+    .funds-nav {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    .funds-nav-title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 20px;
+      letter-spacing: -0.04em;
+      font-weight: 500;
+      color: #1f242e;
+    }
+
+    .funds-nav-btn {
+      border: 0;
+      background: transparent;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 22px;
+      color: #1f242e;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .funds-search {
+      margin-top: 4px;
+      height: 37px;
+      border-radius: 12px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      color: #71747a;
+      font-size: 16px;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+
+    .funds-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 12px 0;
+      scrollbar-width: none;
+    }
+
+    .funds-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .quick-card {
+      flex: 0 0 102px;
+      height: 68px;
+      border-radius: 14px;
+      background: linear-gradient(131deg, #d2d7f4 8%, #c5cae8 89%);
+      padding: 8px 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .quick-card h4 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+      font-weight: 500;
+      color: #1f242e;
+      max-width: 84px;
+    }
+
+    .quick-card::after {
+      content: "";
+      position: absolute;
+      right: -10px;
+      bottom: -12px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9) 0%, rgba(92, 117, 255, 0.35) 70%, rgba(92, 117, 255, 0.15) 100%);
+    }
+
+    .funds-content-wrap {
+      padding: 12px;
+      padding-bottom: 120px;
+    }
+
+    .funds-block-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: space-between;
+    }
+
+    .funds-block-title {
+      margin: 0;
+      color: #1f242e;
+      font-size: 36px;
+      line-height: 24px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .round-hint {
+      width: 24px;
+      height: 24px;
+      border: 0;
+      border-radius: 50%;
+      background: #e5e6eb;
+      color: #303547;
+      font-size: 14px;
+      cursor: default;
+    }
+
+    .collection-scroll {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+
+    .collection-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .collection-card {
+      flex: 0 0 176px;
+      border-radius: 16px;
+      background: #ffffff;
+      padding: 10px 12px;
+    }
+
+    .collection-card h4 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 16px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: #1f242e;
+    }
+
+    .collection-card p {
+      margin: 4px 0 8px;
+      font-size: 13px;
+      line-height: 16px;
+      color: #71747a;
+      letter-spacing: -0.04em;
+    }
+
+    .fund-badges {
+      font-size: 11px;
+      color: #71747a;
+      line-height: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+    }
+
+    .fund-badges strong {
+      color: #00b259;
+      font-size: 22px;
+      line-height: 16px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+    }
+
+    .all-funds-title {
+      margin: 16px 0 10px;
+      font-size: 21pt;
+      line-height: 24px;
+      color: #1f242e;
+      font-weight: 600;
+    }
+
+    .funds-chip-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+
+    .funds-chip-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .fund-chip {
+      border: 0;
+      border-radius: 999px;
+      background: #ffffff;
+      height: 32px;
+      padding: 8px 12px;
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+      color: #1f242e;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .fund-chip.active {
+      background: #dfe5ff;
+      color: #1f242e;
+    }
+
+    .fund-chip.icon-only {
+      width: 32px;
+      justify-content: center;
+      padding: 0;
+      font-size: 16px;
+    }
+
+    .cards {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+      padding-bottom: 120px;
+    }
+
+    .fund-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 10px 12px 12px;
+      cursor: pointer;
+      border: 1px solid #ebedf2;
+      box-shadow: none;
+    }
+
+    .fund-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .fund-card-id {
+      display: flex;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .fund-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #b40f3b 15%, #7b0f8a 90%);
+      color: #fff;
+      font-size: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 40px;
+    }
+
+    .fund-subtitle {
+      margin: 0 0 2px;
+      color: #71747a;
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+    }
+
+    .fund-card h4 {
+      margin: 0;
+      font-size: 14px;
+      line-height: 16px;
+      letter-spacing: -0.02em;
+      font-weight: 500;
+      color: #1f242e;
+    }
+
+    .compare-btn {
+      border: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #eceef2;
+      color: #484f64;
+      padding: 0;
+      min-width: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .compare-btn.active {
+      background: #dceafe;
+      color: #2563eb;
+    }
+
+    .fund-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px 8px;
+      margin-top: 10px;
+      color: #71747a;
+    }
+
+    .fund-meta span {
+      margin-bottom: 2px;
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+      display: block;
+    }
+
+    .fund-meta strong {
+      color: #1f242e;
+      font-size: 14px;
+      line-height: 16px;
+      letter-spacing: -0.02em;
+      font-weight: 500;
+    }
+
+    .yield {
+      color: #00b259 !important;
+    }
+
+    .card-bottom {
+      margin-top: 10px;
+      justify-content: flex-start;
+    }
+
+    .risk {
+      border: 0;
+      background: #f1f1f2;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+      color: #1f242e;
+    }
+
+    .tooltip-overlay {
+      background: rgba(31, 36, 46, 0.5);
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0 8px 136px;
+    }
+
+    .tooltip {
+      width: 100%;
+      max-width: 343px;
+      border-radius: 12px;
+      padding: 10px 42px 10px 12px;
+      box-shadow: none;
+    }
+
+    .tooltip h4 {
+      font-size: 21px;
+      margin-bottom: 4px;
+    }
+
+    .tooltip p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 16px;
+      letter-spacing: -0.04em;
+    }
+
+    .tooltip-close {
+      top: 5px;
+      right: 4px;
+      width: 40px;
+      height: 40px;
+      font-size: 24px;
+      color: #5a6075;
+    }
+  </style>
 </head>
 <body>
-    <h1>🚀 Прототип работает</h1>
+  <div class="app-shell">
+    <section id="screen-main" class="screen active">
+      <div class="home-screen">
+        <div class="home-nav">
+          <div class="home-user">Гость<small>✦</small><span class="go">›</span></div>
+          <div class="home-right">
+            <div class="coins">1000 <i>₽</i></div>
+            <div class="home-bell">🔔</div>
+          </div>
+        </div>
+        <div class="stories">
+          <div class="story">
+            <div class="story-ring"><img src="https://www.figma.com/api/mcp/asset/a55fbd0f-228c-4dc2-9949-0c1427e0743b" alt=""></div>
+            <p>Вклады - премиум</p>
+          </div>
+          <div class="story">
+            <div class="story-ring"><img src="https://www.figma.com/api/mcp/asset/7251bd18-6168-4750-a162-f974295206cc" alt=""></div>
+            <p>Новые правила по профитам</p>
+          </div>
+          <div class="story">
+            <div class="story-ring"><img src="https://www.figma.com/api/mcp/asset/035c2f7b-1dfd-4335-a7fc-d4fb88de41ae" alt=""></div>
+            <p>Выбери лучший вклад</p>
+          </div>
+          <div class="story">
+            <div class="story-ring"><img src="https://www.figma.com/api/mcp/asset/5e1b96b9-3ff6-4ccf-b4f5-efdcc93716f3" alt=""></div>
+            <p>Кредитные каникулы</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-content">
+        <div class="assets-card">
+          <p class="assets-title">Мои активы</p>
+          <div class="assets-row">
+            <div class="assets-balance">0 ₽ <span style="font-size:20px;color:#9da2ad;">›</span></div>
+            <div class="assets-hide">🙈</div>
+          </div>
+          <div class="assets-hint">
+            <span>🌱</span>
+            <span>В среднем клиент Финуслуг открывает вклад 4 раза в год, откройте первый вклад и вы</span>
+          </div>
+        </div>
+
+        <div class="segment">
+          <button class="active" type="button">Заработать</button>
+          <button type="button">Застраховать</button>
+          <button type="button">Занять</button>
+        </div>
+
+        <h1 class="main-title">Открыть продукт</h1>
+        <div class="service-list">
+          <div class="service-row">
+            <span class="service-icon">🔐</span>
+            <span class="service-name">Вклады</span>
+            <span class="service-arrow">›</span>
+          </div>
+          <div class="service-row">
+            <span class="service-icon">⚙️</span>
+            <span class="service-name">Облигации</span>
+            <span class="service-arrow">›</span>
+          </div>
+          <div id="open-funds" class="service-row clickable">
+            <span class="service-icon">◔</span>
+            <span class="service-name">Фонды</span>
+            <span class="service-arrow">›</span>
+          </div>
+          <div class="service-row">
+            <span class="service-icon">◍</span>
+            <span class="service-name">Брокерский счёт</span>
+            <span class="service-arrow">›</span>
+          </div>
+          <div class="service-row">
+            <span class="service-icon">↗</span>
+            <span class="service-name">ИИС</span>
+            <span class="service-arrow">›</span>
+          </div>
+          <div class="service-row">
+            <span class="service-icon">↱</span>
+            <span class="service-name">Финподушка</span>
+            <span class="service-arrow">›</span>
+          </div>
+          <div class="service-row">
+            <span class="service-icon">⚑</span>
+            <span class="service-name">Цели</span>
+            <span class="service-arrow">›</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-funds-list" class="screen">
+      <div class="funds-screen-header">
+        <div class="funds-nav">
+          <button id="funds-back" class="funds-nav-btn" aria-label="Назад">←</button>
+          <h2 class="funds-nav-title">Фонды</h2>
+          <button id="header-compare-hint" class="funds-nav-btn" aria-label="Сравнение">•</button>
+        </div>
+        <div class="funds-search"><span style="font-size:18px;line-height:1;">⌕</span>Фонд, УК или автор</div>
+        <div class="funds-scroll">
+          <div class="quick-card"><h4>Что такое фонды</h4></div>
+          <div class="quick-card"><h4>Как инвестировать</h4></div>
+          <div class="quick-card"><h4>Поможем с выбором</h4></div>
+        </div>
+      </div>
+
+      <div class="funds-content-wrap">
+        <div class="funds-block-title-row">
+          <h3 class="funds-block-title">Подборки фондов</h3>
+          <button class="round-hint" type="button">?</button>
+        </div>
+        <div class="collection-scroll">
+          <article class="collection-card">
+            <h4>Минимальный риск</h4>
+            <p>Фокус на сохранении капитала</p>
+            <div class="fund-badges"><span>за 6 мес</span><strong>+6,55%</strong></div>
+          </article>
+          <article class="collection-card">
+            <h4>Оптимальный набор</h4>
+            <p>Баланс риска и доходности</p>
+            <div class="fund-badges"><span>за 6 мес</span><strong>+8,09%</strong></div>
+          </article>
+        </div>
+
+        <h3 class="all-funds-title">Все фонды</h3>
+        <div class="funds-chip-row">
+          <button id="sort-btn" class="fund-chip icon-only" aria-label="Sort"><span id="sort-arrow">↓</span></button>
+          <button class="fund-chip">Фильтры</button>
+          <button id="risk-chip" class="fund-chip">Низкий риск</button>
+          <button class="fund-chip">Акция</button>
+        </div>
+
+        <div id="funds-cards" class="cards"></div>
+      </div>
+    </section>
+
+    <section id="screen-fund-detail" class="screen">
+      <div class="page-header">
+        <div class="title-row">
+          <button id="detail-back" class="icon-btn" aria-label="Назад">←</button>
+          <h2 class="title" style="font-size:20px; flex:1;">Детали фонда</h2>
+          <button id="detail-compare-btn" class="icon-btn" aria-label="Сравнение">◎</button>
+        </div>
+      </div>
+      <div class="content">
+        <div id="detail-card" class="fund-detail-card"></div>
+      </div>
+    </section>
+
+    <section id="screen-compare" class="screen">
+      <div class="compare-top">
+        <div class="title-row">
+          <button id="compare-back" class="icon-btn" aria-label="Назад">←</button>
+          <h2 class="title" style="font-size:20px; flex:1;">Сравнение фондов</h2>
+        </div>
+        <div id="selected-funds" class="selected-funds" style="margin-top:10px;"></div>
+      </div>
+      <div class="compare-content">
+        <div class="chart-wrap">
+          <canvas id="compare-canvas" width="350" height="220"></canvas>
+          <div id="legend" class="legend"></div>
+        </div>
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th style="width:122px;">Параметр</th>
+              <th id="th-f1">Фонд 1</th>
+              <th id="th-f2">Фонд 2</th>
+              <th id="th-f3">Фонд 3</th>
+            </tr>
+          </thead>
+          <tbody id="metrics-body"></tbody>
+        </table>
+        <p class="disclaimer">Данные носят информационный характер, не являются инвестиционной рекомендацией.</p>
+      </div>
+    </section>
+  </div>
+
+  <div id="snackbar" class="snackbar" role="button" tabindex="0">
+    <div id="snackbar-text" class="snackbar-text">Выбрано 0 из 3</div>
+    <button id="snackbar-close" class="snackbar-close" aria-label="Очистить сравнение">×</button>
+  </div>
+
+  <div id="tooltip-overlay" class="tooltip-overlay">
+    <div id="tooltip-card" class="tooltip">
+      <button id="tooltip-close" class="tooltip-close" aria-label="Close">×</button>
+      <h4>Сравнивайте фонды</h4>
+      <p>По доходности, риску и другим параметрам. Для отмены сравнения нажмите на кнопку еще раз</p>
+    </div>
+  </div>
+
+  <div id="detail-alert" class="alert-overlay">
+    <div id="detail-alert-box" class="alert-box">
+      <h4>Добавим в сравнение</h4>
+      <p>Фонд будет добавлен через <strong id="alert-countdown">4</strong></p>
+      <p class="subtle">Нажмите в любом месте, чтобы закрыть раньше.</p>
+    </div>
+  </div>
+
+  <script>
+    const funds = [
+      { id: "f1", name: "ДОХОДЪ - Золото", price: 1299.89, yearlyYield: 36.17, composition: "Облигации", risk: "Высокий", minInvestment: "От 1000 ₽", assets: "180,83 млн руб", topAssets: "ОФЗ 26240, RUONIA, Корп. облигации", managementFee: 1.8, dealFee: 0.12 },
+      { id: "f2", name: "ГЕРОИ - Рублевые перспективы", price: 1650.42, yearlyYield: 31.97, composition: "Облигации", risk: "Низкий", minInvestment: "От 30 000 ₽", assets: "3,26 млрд руб", topAssets: "ОФЗ 26238, Газпром, РЖД", managementFee: 1.3, dealFee: 0.09 },
+      { id: "f3", name: "Альфа-Капитал Высокодоходные облигации", price: 1522.34, yearlyYield: 27.93, composition: "Облигации", risk: "Высокий", minInvestment: "От 50 000 ₽", assets: "12,62 млрд руб", topAssets: "Сбербанк, Лукойл, Полюс", managementFee: 2.1, dealFee: 0.16 },
+      { id: "f4", name: "ДОХОДЪ - Перспективные облигации", price: 2693.75, yearlyYield: 24.30, composition: "Облигации", risk: "Средний", minInvestment: "От 1000 ₽", assets: "98,56 млн руб", topAssets: "Норникель, ОФЗ, Транснефть", managementFee: 1.6, dealFee: 0.11 },
+      { id: "f5", name: "ВИМ - Облигации. Российские эмитенты", price: 1621.57, yearlyYield: 23.51, composition: "Облигации", risk: "Средний", minInvestment: "От 1000 ₽", assets: "3,72 млрд руб", topAssets: "Роснефть, Новатэк, ОФЗ", managementFee: 1.4, dealFee: 0.1 },
+      { id: "f6", name: "Атон - Фонд облигаций", price: 1180.35, yearlyYield: 19.84, composition: "Облигации", risk: "Низкий", minInvestment: "От 5000 ₽", assets: "2,15 млрд руб", topAssets: "ОФЗ, МТС, ВЭБ.РФ", managementFee: 1.2, dealFee: 0.08 },
+      { id: "f7", name: "ДОХОДЪ - Денежный рынок", price: 1015.20, yearlyYield: 8.12, composition: "Денежный рынок", risk: "Низкий", minInvestment: "От 1000 ₽", assets: "15,40 млрд руб", topAssets: "РЕПО, RUONIA, Краткосрок", managementFee: 0.7, dealFee: 0.03 },
+      { id: "f8", name: "ТРИНФИКО - Российские доходные облигации", price: 1432.90, yearlyYield: 21.66, composition: "Облигации", risk: "Средний", minInvestment: "От 10 000 ₽", assets: "5,83 млрд руб", topAssets: "ОФЗ, ФСК ЕЭС, Алроса", managementFee: 1.5, dealFee: 0.1 }
+    ];
+
+    const benchmarkSeries = {
+      deposit: [0, 0.6, 1.3, 2.0, 2.7, 3.4, 4.1, 4.8, 5.6, 6.3, 7.1, 8.0, 8.7, 9.5, 10.3, 11.1, 11.9, 12.7, 13.5, 14.3, 15.1, 15.9, 16.7, 17.5],
+      imoex: [0, 2.1, 4.8, 7.2, 9.5, 11.8, 14.0, 16.2, 13.1, 12.5, 11.0, 12.2, 13.8, 14.5, 16.0, 15.2, 14.0, 13.5, 12.8, 13.9, 15.2, 16.8, 18.1, 19.4]
+    };
+
+    const fundLogoMap = {
+      f1: "https://www.figma.com/api/mcp/asset/82054ab3-1381-4795-8ff3-4c1396c90a8f",
+      f2: "https://www.figma.com/api/mcp/asset/b095aab2-3549-4629-84a8-e5811432b8b9"
+    };
+
+    const compareIconMap = {
+      f1: "https://www.figma.com/api/mcp/asset/d1ac5d19-fa22-4252-ae07-320ddc63dcca",
+      f2: "https://www.figma.com/api/mcp/asset/f37e4edb-1e05-4a01-a9e7-1e8df0c24860"
+    };
+
+    const screens = {
+      main: document.getElementById("screen-main"),
+      funds: document.getElementById("screen-funds-list"),
+      detail: document.getElementById("screen-fund-detail"),
+      compare: document.getElementById("screen-compare")
+    };
+
+    const state = {
+      currentScreen: "main",
+      previousScreen: "funds",
+      sortAsc: false,
+      lowRiskOnly: false,
+      selectedFunds: [],
+      currentFundId: null,
+      chartVisibility: {},
+      fundSeries: {}
+    };
+
+    function logEvent(eventName, details = {}) {
+      console.log("[USABILITY]", eventName, details);
+    }
+
+    function formatMoney(value) {
+      return value.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ₽";
+    }
+
+    function showScreen(screenName) {
+      Object.values(screens).forEach((screen) => screen.classList.remove("active"));
+      screens[screenName].classList.add("active");
+      state.currentScreen = screenName;
+      logEvent("открыт экран", { screen: screenName });
+      updateSnackbar();
+      if (screenName === "funds") maybeShowTooltip();
+      if (screenName === "compare") renderCompareScreen();
+      if (screenName === "detail") renderDetail();
+    }
+
+    function getOrderedFunds() {
+      const copy = [...funds];
+      copy.sort((a, b) => state.sortAsc ? a.yearlyYield - b.yearlyYield : b.yearlyYield - a.yearlyYield);
+      if (state.lowRiskOnly) return copy.filter((f) => f.risk === "Низкий");
+      return copy;
+    }
+
+    function canAddMore() {
+      return state.selectedFunds.length < 3;
+    }
+
+    function isSelected(id) {
+      return state.selectedFunds.includes(id);
+    }
+
+    function updateComparisonToggleLocks() {
+      document.querySelectorAll(".compare-btn").forEach((btn) => {
+        const id = btn.dataset.id;
+        const selected = isSelected(id);
+        const lock = !selected && !canAddMore();
+        btn.disabled = lock;
+        btn.classList.toggle("active", selected);
+      });
+
+      const detailBtn = document.getElementById("detail-compare-btn");
+      if (state.currentFundId) {
+        const selected = isSelected(state.currentFundId);
+        detailBtn.classList.toggle("active", selected);
+        detailBtn.classList.toggle("disabled", !selected && !canAddMore());
+      }
+    }
+
+    function toggleFundSelection(fundId, source = "card") {
+      const index = state.selectedFunds.indexOf(fundId);
+      const fund = funds.find((f) => f.id === fundId);
+      if (index >= 0) {
+        state.selectedFunds.splice(index, 1);
+        logEvent("удалён фонд", { fund: fund.name, source });
+      } else {
+        if (!canAddMore()) return false;
+        state.selectedFunds.push(fundId);
+        logEvent("добавлен фонд", { fund: fund.name, source });
+      }
+      updateComparisonToggleLocks();
+      updateSnackbar();
+      if (state.currentScreen === "compare") renderCompareScreen();
+      return true;
+    }
+
+    function renderFundsCards() {
+      const container = document.getElementById("funds-cards");
+      const list = getOrderedFunds();
+      container.innerHTML = "";
+
+      list.forEach((fund) => {
+        const card = document.createElement("article");
+        card.className = "fund-card";
+        const logoHtml = fundLogoMap[fund.id]
+          ? `<img src="${fundLogoMap[fund.id]}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
+          : `<span>${fund.id === "f3" ? "✹" : "◍"}</span>`;
+        const compareIconHtml = compareIconMap[fund.id]
+          ? `<img src="${compareIconMap[fund.id]}" alt="" style="width:14px;height:14px;display:block;">`
+          : `<span style="font-size:14px;line-height:1;">⛓</span>`;
+        card.innerHTML = `
+          <div class="fund-card-head">
+            <div class="fund-card-id">
+              <span class="fund-logo">${logoHtml}</span>
+              <div>
+                <p class="fund-subtitle">ООО УК «${fund.name.split(" - ")[0]}»</p>
+                <h4>${fund.name}</h4>
+              </div>
+            </div>
+            <button class="compare-btn" data-id="${fund.id}">
+              ${compareIconHtml}
+            </button>
+          </div>
+          <div class="fund-meta">
+            <div><span>За 1 г</span><strong class="yield">+${fund.yearlyYield.toFixed(2)}%</strong></div>
+            <div><span>Мин. инвестиция</span><strong>${fund.minInvestment.replace("От ", "")}</strong></div>
+            <div><span>Активы фонда</span><strong>${fund.assets.replace(" руб", " ₽")}</strong></div>
+          </div>
+          <div class="card-bottom">
+            <span class="risk">${fund.risk} риск</span>
+          </div>
+        `;
+
+        card.addEventListener("click", (e) => {
+          if (e.target.closest(".compare-btn")) return;
+          state.currentFundId = fund.id;
+          state.previousScreen = "funds";
+          showScreen("detail");
+        });
+
+        const compareBtn = card.querySelector(".compare-btn");
+        compareBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleFundSelection(fund.id, "card");
+          renderFundsCards();
+        });
+
+        container.appendChild(card);
+      });
+
+      updateComparisonToggleLocks();
+    }
+
+    function renderDetail() {
+      const fund = funds.find((f) => f.id === state.currentFundId);
+      if (!fund) return;
+
+      const card = document.getElementById("detail-card");
+      card.innerHTML = `
+        <h3 style="margin:0; font-size:20px;">${fund.name}</h3>
+        <p style="margin:6px 0 0; color:#6f7488; font-size:14px;">Подробная информация по фонду</p>
+        <div class="detail-grid">
+          <div class="detail-row"><span>Стоимость пая</span><strong>${formatMoney(fund.price)}</strong></div>
+          <div class="detail-row"><span>Доходность за 1 год</span><strong class="yield">+${fund.yearlyYield.toFixed(2)}%</strong></div>
+          <div class="detail-row"><span>Состав</span><strong>${fund.composition}</strong></div>
+          <div class="detail-row"><span>Уровень риска</span><strong>${fund.risk}</strong></div>
+          <div class="detail-row"><span>Мин. инвестиция</span><strong>${fund.minInvestment}</strong></div>
+          <div class="detail-row"><span>Активы фонда</span><strong>${fund.assets}</strong></div>
+        </div>
+      `;
+
+      updateComparisonToggleLocks();
+    }
+
+    function updateSnackbar() {
+      const snackbar = document.getElementById("snackbar");
+      const text = document.getElementById("snackbar-text");
+      const count = state.selectedFunds.length;
+      text.textContent = `Выбрано ${count} из 3`;
+      snackbar.classList.toggle("show", count > 0);
+    }
+
+    function closeSnackbarAndResetSelection() {
+      state.selectedFunds = [];
+      updateSnackbar();
+      renderFundsCards();
+      renderDetail();
+      if (state.currentScreen === "compare") {
+        showScreen("funds");
+      }
+    }
+
+    function maybeShowTooltip() {
+      const key = "fundsCompareTooltipSeen";
+      if (sessionStorage.getItem(key)) return;
+      const overlay = document.getElementById("tooltip-overlay");
+      overlay.classList.add("show");
+    }
+
+    function closeTooltip() {
+      sessionStorage.setItem("fundsCompareTooltipSeen", "1");
+      document.getElementById("tooltip-overlay").classList.remove("show");
+      logEvent("закрыт ToolTip");
+    }
+
+    function generateFundSeries(fund) {
+      const points = [];
+      const monthlyTarget = fund.yearlyYield / 23;
+      let value = 0;
+      for (let i = 0; i < 24; i++) {
+        if (i === 0) {
+          points.push(0);
+          continue;
+        }
+        const wave = Math.sin(i * 0.8 + fund.yearlyYield * 0.02) * 0.65;
+        const drift = monthlyTarget + wave;
+        value += Math.max(0.12, drift);
+        points.push(Number(value.toFixed(2)));
+      }
+      return points;
+    }
+
+    function initSeries() {
+      funds.forEach((fund) => {
+        state.fundSeries[fund.id] = generateFundSeries(fund);
+      });
+    }
+
+    function getChartData() {
+      const selected = state.selectedFunds
+        .map((id) => funds.find((f) => f.id === id))
+        .filter(Boolean);
+
+      const palette = ["#2563eb", "#8b5cf6", "#ec4899", "#f59e0b", "#14b8a6"];
+      const entries = [
+        { key: "deposit", label: "Вклад (среднее)", color: "#16a34a", values: benchmarkSeries.deposit },
+        { key: "imoex", label: "Индекс МосБиржи", color: "#475569", values: benchmarkSeries.imoex }
+      ];
+
+      selected.forEach((fund, idx) => {
+        entries.push({
+          key: fund.id,
+          label: fund.name,
+          color: palette[idx % palette.length],
+          values: state.fundSeries[fund.id]
+        });
+      });
+
+      entries.forEach((entry) => {
+        if (typeof state.chartVisibility[entry.key] === "undefined") state.chartVisibility[entry.key] = true;
+      });
+
+      return entries;
+    }
+
+    function drawChart() {
+      const canvas = document.getElementById("compare-canvas");
+      const ctx = canvas.getContext("2d");
+      const data = getChartData();
+      const width = canvas.width;
+      const height = canvas.height;
+      const pad = { top: 14, right: 10, bottom: 22, left: 34 };
+      const maxY = Math.max(...data.flatMap((d) => d.values)) + 4;
+      const minY = 0;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + ((height - pad.top - pad.bottom) * i) / 4;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        const val = (maxY - ((maxY - minY) * i) / 4).toFixed(0);
+        ctx.fillStyle = "#7b8096";
+        ctx.font = "10px -apple-system";
+        ctx.fillText(val + "%", 4, y + 3);
+      }
+
+      data.forEach((series) => {
+        if (!state.chartVisibility[series.key]) return;
+        ctx.beginPath();
+        ctx.strokeStyle = series.color;
+        ctx.lineWidth = 2;
+        series.values.forEach((v, i) => {
+          const x = pad.left + ((width - pad.left - pad.right) * i) / (series.values.length - 1);
+          const y = pad.top + (height - pad.top - pad.bottom) * (1 - (v - minY) / (maxY - minY));
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      });
+
+      ctx.fillStyle = "#7b8096";
+      ctx.font = "10px -apple-system";
+      ctx.fillText("24 мес", width - 42, height - 6);
+      ctx.fillText("0", pad.left - 2, height - 6);
+    }
+
+    function renderLegend() {
+      const legend = document.getElementById("legend");
+      const data = getChartData();
+      legend.innerHTML = "";
+
+      data.forEach((entry) => {
+        const btn = document.createElement("button");
+        btn.className = "legend-btn";
+        btn.classList.toggle("off", !state.chartVisibility[entry.key]);
+        btn.innerHTML = `<span class="legend-dot" style="background:${entry.color}"></span>${entry.label}`;
+        btn.addEventListener("click", () => {
+          state.chartVisibility[entry.key] = !state.chartVisibility[entry.key];
+          renderLegend();
+          drawChart();
+        });
+        legend.appendChild(btn);
+      });
+    }
+
+    function renderCompareTable() {
+      const selected = state.selectedFunds
+        .map((id) => funds.find((f) => f.id === id))
+        .filter(Boolean);
+      const body = document.getElementById("metrics-body");
+      const th = [document.getElementById("th-f1"), document.getElementById("th-f2"), document.getElementById("th-f3")];
+
+      th.forEach((cell, idx) => {
+        cell.textContent = selected[idx] ? selected[idx].name : "—";
+      });
+
+      body.innerHTML = "";
+      const rows = [
+        { label: "Доходность (1 год)", key: "yearlyYield", format: (v) => "+" + v.toFixed(2) + "%", best: "max" },
+        { label: "Уровень риска", key: "risk", format: (v) => v, best: null },
+        { label: "Состав", key: "composition", format: (v) => v, best: null },
+        { label: "Топ-3 актива", key: "topAssets", format: (v) => v, best: null },
+        { label: "Комиссия за управление", key: "managementFee", format: (v) => v.toFixed(2) + "%", best: "min" },
+        { label: "Комиссия за сделки", key: "dealFee", format: (v) => v.toFixed(2) + "%", best: "min" },
+        { label: "Мин. сумма покупки", key: "minInvestment", format: (v) => v, best: null }
+      ];
+
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        const tdLabel = document.createElement("td");
+        tdLabel.textContent = row.label;
+        tr.appendChild(tdLabel);
+
+        let bestValue = null;
+        if (row.best === "max") bestValue = Math.max(...selected.map((f) => f[row.key]));
+        if (row.best === "min") bestValue = Math.min(...selected.map((f) => f[row.key]));
+
+        for (let i = 0; i < 3; i++) {
+          const td = document.createElement("td");
+          const fund = selected[i];
+          if (fund) {
+            td.textContent = row.format(fund[row.key]);
+            if (bestValue !== null && fund[row.key] === bestValue) td.classList.add("best");
+          } else {
+            td.textContent = "—";
+          }
+          tr.appendChild(td);
+        }
+
+        body.appendChild(tr);
+      });
+    }
+
+    function renderCompareSelectedPills() {
+      const wrap = document.getElementById("selected-funds");
+      wrap.innerHTML = "";
+      state.selectedFunds.forEach((id) => {
+        const fund = funds.find((f) => f.id === id);
+        const pill = document.createElement("div");
+        pill.className = "selected-pill";
+        pill.innerHTML = `<span>${fund.name}</span><button aria-label="Удалить">×</button>`;
+        pill.querySelector("button").addEventListener("click", () => {
+          toggleFundSelection(id, "compare-header-remove");
+          if (state.selectedFunds.length < 2) {
+            showScreen(state.previousScreen || "funds");
+            return;
+          }
+          renderCompareScreen();
+          renderFundsCards();
+          renderDetail();
+        });
+        wrap.appendChild(pill);
+      });
+    }
+
+    function renderCompareScreen() {
+      renderCompareSelectedPills();
+      renderLegend();
+      drawChart();
+      renderCompareTable();
+    }
+
+    function setupEvents() {
+      document.getElementById("open-funds").addEventListener("click", () => showScreen("funds"));
+      document.getElementById("funds-back").addEventListener("click", () => showScreen("main"));
+
+      document.getElementById("sort-btn").addEventListener("click", () => {
+        state.sortAsc = !state.sortAsc;
+        document.getElementById("sort-arrow").textContent = state.sortAsc ? "↑" : "↓";
+        renderFundsCards();
+        logEvent("нажата сортировка", { asc: state.sortAsc });
+      });
+
+      document.getElementById("risk-chip").addEventListener("click", (e) => {
+        state.lowRiskOnly = !state.lowRiskOnly;
+        e.currentTarget.classList.toggle("active", state.lowRiskOnly);
+        renderFundsCards();
+        logEvent("применён фильтр по риску", { lowRiskOnly: state.lowRiskOnly });
+      });
+
+      const tooltipOverlay = document.getElementById("tooltip-overlay");
+      const tooltipCard = document.getElementById("tooltip-card");
+      tooltipOverlay.addEventListener("click", () => closeTooltip());
+      tooltipCard.addEventListener("click", (e) => e.stopPropagation());
+      document.getElementById("tooltip-close").addEventListener("click", closeTooltip);
+
+      document.getElementById("snackbar").addEventListener("click", (e) => {
+        if (e.target.closest("#snackbar-close")) return;
+        if (state.selectedFunds.length >= 2) {
+          state.previousScreen = state.currentScreen === "compare" ? "funds" : state.currentScreen;
+          showScreen("compare");
+        }
+      });
+      document.getElementById("snackbar-close").addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeSnackbarAndResetSelection();
+      });
+
+      document.getElementById("detail-back").addEventListener("click", () => showScreen("funds"));
+      document.getElementById("compare-back").addEventListener("click", () => showScreen(state.previousScreen || "funds"));
+
+      document.getElementById("header-compare-hint").addEventListener("click", () => {
+        if (state.selectedFunds.length >= 2) {
+          state.previousScreen = "funds";
+          showScreen("compare");
+        }
+      });
+
+      setupDetailCompareButton();
+    }
+
+    function setupDetailCompareButton() {
+      const detailBtn = document.getElementById("detail-compare-btn");
+      const overlay = document.getElementById("detail-alert");
+      const countdownNode = document.getElementById("alert-countdown");
+      let timer = null;
+      let pendingFundId = null;
+      let countdown = 4;
+
+      function finalizeAdd() {
+        if (!pendingFundId) return;
+        if (!isSelected(pendingFundId)) {
+          toggleFundSelection(pendingFundId, "detail-alert");
+        }
+        pendingFundId = null;
+        overlay.classList.remove("show");
+        renderFundsCards();
+        renderDetail();
+      }
+
+      function closeAlert() {
+        if (timer) clearInterval(timer);
+        timer = null;
+        finalizeAdd();
+      }
+
+      overlay.addEventListener("click", closeAlert);
+      document.getElementById("detail-alert-box").addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeAlert();
+      });
+
+      detailBtn.addEventListener("click", () => {
+        const id = state.currentFundId;
+        if (!id) return;
+
+        if (isSelected(id)) {
+          if (state.selectedFunds.length >= 2) {
+            state.previousScreen = "detail";
+            showScreen("compare");
+            return;
+          }
+          toggleFundSelection(id, "detail-toggle-off");
+          renderFundsCards();
+          renderDetail();
+          return;
+        }
+
+        if (!canAddMore()) return;
+
+        pendingFundId = id;
+        countdown = 4;
+        countdownNode.textContent = String(countdown);
+        overlay.classList.add("show");
+
+        if (timer) clearInterval(timer);
+        timer = setInterval(() => {
+          countdown -= 1;
+          if (countdown <= 0) {
+            clearInterval(timer);
+            timer = null;
+            closeAlert();
+            return;
+          }
+          countdownNode.textContent = String(countdown);
+        }, 1000);
+      });
+    }
+
+    initSeries();
+    setupEvents();
+    renderFundsCards();
+    updateSnackbar();
+  </script>
 </body>
 </html>
